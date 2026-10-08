@@ -1,6 +1,0 @@
-[flavor]
-dark = "kanagawa"
-[filetype]
-rules = [
-	{ url = "*/", fg = "#ffffff" },
-]

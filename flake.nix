@@ -1,65 +1,63 @@
 {
   description = "cups nixos";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
 
-  inputs =
-    #(import ./modules.nix)
-    {
-      nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-      # nix-serve-ng = {
-      #   url = "github:aristanetworks/nix-serve-ng";
-      #   inputs.nixpkgs.follows = "nixpkgs";
-      # };
+    # nix-serve-ng = {
+    #   url = "github:aristanetworks/nix-serve-ng";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
 
-      #nvf.url = "github:acup1/nvf";
-      home-manager = {
-        url = "github:nix-community/home-manager";
-        inputs.nixpkgs.follows = "nixpkgs";
-      };
-
-      hyprland = {
-        # type = "github";
-        url = "github:hyprwm/Hyprland";
-        # submodules = true;
-        inputs.nixpkgs.follows = "nixpkgs";
-      };
-
-      driftwm.url = "github:malbiruk/driftwm";
-
-      # Keep the upstream Rust/GTK stack pinned independently.
-      waylandkb.url = "github:acup1/waylandkb";
-
-      # hyprgrass = {
-      #   url = "github:horriblename/hyprgrass";
-      #   inputs.hyprland.follows = "hyprland";
-      # };
-      # Hyprspace = {
-      #   url = "github:KZDKM/Hyprspace";
-      #   inputs.hyprland.follows = "hyprland";
-      # };
-
-      iio-hyprland.url = "github:JeanSchoeller/iio-hyprland";
-
-      nix-matlab = {
-        url = "gitlab:doronbehar/nix-matlab";
-        inputs.nixpkgs.follows = "nixpkgs";
-      };
-
-      dms = {
-        url = "github:AvengeMedia/DankMaterialShell/stable";
-        inputs.nixpkgs.follows = "nixpkgs";
-      };
-
-      winapps = {
-        url = "github:winapps-org/winapps";
-        inputs.nixpkgs.follows = "nixpkgs";
-      };
-      niri.url = "github:niri-wm/niri";
-
-      nvf = {
-        url = "github:notashelf/nvf";
-        inputs.nixpkgs.follows = "nixpkgs";
-      };
+    #nvf.url = "github:acup1/nvf";
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    hyprland = {
+      # type = "github";
+      url = "github:hyprwm/Hyprland";
+      # submodules = true;
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    driftwm.url = "github:malbiruk/driftwm";
+
+    # Keep the upstream Rust/GTK stack pinned independently.
+    waylandkb.url = "github:acup1/waylandkb";
+
+    # hyprgrass = {
+    #   url = "github:horriblename/hyprgrass";
+    #   inputs.hyprland.follows = "hyprland";
+    # };
+    # Hyprspace = {
+    #   url = "github:KZDKM/Hyprspace";
+    #   inputs.hyprland.follows = "hyprland";
+    # };
+
+    iio-hyprland.url = "github:JeanSchoeller/iio-hyprland";
+
+    nix-matlab = {
+      url = "gitlab:doronbehar/nix-matlab";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    dms = {
+      url = "github:AvengeMedia/DankMaterialShell/stable";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    winapps = {
+      url = "github:winapps-org/winapps";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    niri.url = "github:niri-wm/niri";
+
+    nvf = {
+      url = "github:notashelf/nvf";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
   outputs = {
     self,
@@ -70,18 +68,18 @@
     username = "acup";
     system = "x86_64-linux";
     flakeDir = "/home/acup/flakes/nixos";
+    moduleBundles = import /home/acup/flakes/modules.nix {
+      inherit inputs;
+    };
   in {
     nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
       modules =
         [
           ./programs/default.nix
         ]
-        ++ [inputs.driftwm.nixosModules.default]
         ++ (nixpkgs.lib.filesystem.listFilesRecursive ./configuration)
-        ++ (inputs.nixpkgs.lib.filesystem.listFilesRecursive ./packages)
-        ++ (nixpkgs.lib.filesystem.listFilesRecursive ./modules)
-        # ++ [ inputs.niri.nixosModules.niri ]
-        ;
+        ++ (if builtins.pathExists ./packages then (inputs.nixpkgs.lib.filesystem.listFilesRecursive ./packages) else [])
+        ++ (map (bundle: bundle.nixos or {}) moduleBundles);
       specialArgs = {
         inherit
           self
@@ -95,9 +93,9 @@
 
     homeConfigurations.${username} = home-manager.lib.homeManagerConfiguration {
       pkgs = import nixpkgs {system = "x86_64-linux";};
-      modules = [
-        ./home.nix
-      ];
+      modules =
+        [./home.nix]
+        ++ (map (bundle: bundle.home or {}) moduleBundles);
       extraSpecialArgs = {
         inherit
           self

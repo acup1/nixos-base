@@ -1,12 +1,17 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-{ config, lib, pkgs, inputs, username, ... }:
-let ports = [ 8080 25565 10022 22 1433 ];
+{
+  config,
+  lib,
+  pkgs,
+  inputs,
+  username,
+  ...
+}: let
+  ports = [8080 25565 10022 22 1433];
 in {
-  imports = [ /etc/nixos/hardware-configuration.nix ];
-  services.xserver.wacom.enable = true; # или убедись что libinput активен
-  hardware.opentabletdriver.enable = true; # альтернатива — OpenTabletDriver
+  imports = [/etc/nixos/hardware-configuration.nix];
 
   # Bootloader.
   #boot.loader.systemd-boot.enable = true;
@@ -16,52 +21,6 @@ in {
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Enable networking
-  networking.networkmanager.enable = true;
-
-  # Set your time zone.
-  time.timeZone = "Europe/Moscow";
-
-  # Select internationalisation properties.
-  i18n.defaultLocale = "ru_RU.UTF-8";
-
-  i18n.extraLocaleSettings = {
-    LC_ADDRESS = "ru_RU.UTF-8";
-    LC_IDENTIFICATION = "ru_RU.UTF-8";
-    LC_MEASUREMENT = "ru_RU.UTF-8";
-    LC_MONETARY = "ru_RU.UTF-8";
-    LC_NAME = "ru_RU.UTF-8";
-    LC_NUMERIC = "ru_RU.UTF-8";
-    LC_PAPER = "ru_RU.UTF-8";
-    LC_TELEPHONE = "ru_RU.UTF-8";
-    LC_TIME = "ru_RU.UTF-8";
-  };
-
-  services.displayManager.gdm = {
-    enable = true;
-    # wayland = true;
-    autoSuspend = false;
-    settings = {
-      greeter = {
-        IncludeAll = true; # Включает все сессии (Hyprland + UWSM)
-        DisableUserList = false; # Показывать пользователей
-      };
-    };
-  };
-
-  services.xserver = {
-    enable = true;
-    xkb = {
-      layout = "us,ru";
-      variant = "";
-    };
-  };
-  programs.hyprland = {
-    enable = true;
-    xwayland.enable = true;
-    withUWSM = false;
-  };
 
   # Enable CUPS to print documents.
   services.avahi = {
@@ -74,41 +33,16 @@ in {
     };
   };
   services.printing = {
-    listenAddresses = [ "*:631" ];
-    allowFrom = [ "all" ];
+    listenAddresses = ["*:631"];
+    allowFrom = ["all"];
     browsing = true;
     defaultShared = true;
     openFirewall = true;
   };
   services.printing.enable = true;
-  services.printing.drivers = [ pkgs.gutenprint pkgs.hplip ];
-  services.upower = {
-    enable = true;
-    percentageLow = 20;
-    percentageCritical = 5;
-    percentageAction = 3;
-    criticalPowerAction = "PowerOff";
-  };
-  services.power-profiles-daemon.enable = true;
+  services.printing.drivers = [pkgs.gutenprint pkgs.hplip];
 
   programs.system-config-printer.enable = true;
-
-  programs.zsh.enable = true;
-  # Enable sound with pipewire.
-  services.pulseaudio.enable = false;
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-    jack.enable = true;
-  };
-  services.passSecretService.enable = true;
-
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.xserver.libinput.enable = true;
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   #users.defaultUserShell = pkgs.zsh;
@@ -124,18 +58,13 @@ in {
 
   # Install firefox.
   programs.firefox.enable = true;
-  programs.nix-ld.enable = true;
   #vvirtualisation
   virtualisation.virtualbox.host.enable = true;
   virtualisation.docker.enable = true;
 
-  users.extraGroups.vboxusers.members = [ "acup" ];
-  boot.kernelParams = [ "kvm.enable_virt_at_load=0" ];
-  boot.kernelModules = [ "cdc_acm" ];
-
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
-  nixpkgs.config.allowUnfree = true;
+  users.extraGroups.vboxusers.members = ["acup"];
+  boot.kernelParams = ["kvm.enable_virt_at_load=0"];
+  boot.kernelModules = ["cdc_acm"];
 
   #programs.nvf = {
   #  enable = true;
@@ -150,11 +79,6 @@ in {
   #  #  vim.languages.nix.enable=true;
   #  #};
   #};
-
-  hardware.graphics = {
-    enable = true;
-    extraPackages = with pkgs; [ libgbm ];
-  };
 
   #environment.systemPackages = with unstable-pkgs; [
   #  amnezia-vpn
@@ -203,6 +127,4 @@ in {
     ];
     shell = pkgs.zsh;
   };
-
-  nix.settings.allowed-users = [ "${username}" ];
 }
