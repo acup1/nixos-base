@@ -35,22 +35,19 @@
     home-manager,
     ...
   } @ inputs: let
-    configFile =
-      if builtins.pathExists /nix/config.nix
-      then import /nix/config.nix
-      else throw "`/nix/config.nix` is missing";
-
-    username = configFile.username or (throw "variable `username` in `/nix/config.nix` is missing");
-    system = configFile.system or (throw "variable `system` in `/nix/config.nix` is missing");
-    flakeDir = configFile.flakeDir or (throw "variable `flakeDir` in `/nix/config.nix` is missing");
+    config = import /nix/config.nix {
+      inherit inputs;
+    };
+    username = config.username;
+    system = config.system;
+    flakeDir = config.flakeDir;
+    moduleBundles = config.modules;
   in {
     darwinConfigurations."${username}-OSX" = inputs.nix-darwin.lib.darwinSystem {
       inherit system;
       modules =
-        [
-        ]
-        ++ (nixpkgs.lib.filesystem.listFilesRecursive ./darwin-configuration)
-        ++ (inputs.nixpkgs.lib.filesystem.listFilesRecursive ./packages);
+        []
+        ++ (map (bundle: bundle.darwin or {}) moduleBundles);
       specialArgs = {
         inherit
           self
@@ -64,9 +61,9 @@
 
     homeConfigurations.${username} = home-manager.lib.homeManagerConfiguration {
       pkgs = import nixpkgs {system = system;};
-      modules = [
-        ./home.nix
-      ];
+      modules =
+        [./home.nix]
+        ++ (map (bundle: bundle.home or {}) moduleBundles);
       extraSpecialArgs = {
         inherit
           self
