@@ -18,8 +18,14 @@ case "${1:-system}" in
     shift || true
     action="${1:-switch}"
     [[ $# -eq 0 ]] || shift
+    username="$(nix eval --impure --raw --expr '
+      let
+        config = import (builtins.toPath (builtins.getEnv "NIXOS_BASE_CONFIG")) {inputs = {};};
+      in
+        config.username
+    ')"
     exec sudo --preserve-env=NIXOS_BASE_CONFIG \
-      darwin-rebuild "$action" --flake "$repo_dir" --impure "$@"
+      darwin-rebuild "$action" --flake "$repo_dir#${username}-OSX" --impure "$@"
     ;;
   home)
     shift || true
