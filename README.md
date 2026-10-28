@@ -5,6 +5,10 @@
 
 ## to install on macos
 ```sh
-sudo nix run --extra-experimental-features nix-command --extra-experimental-features flakes nix-darwin/master#darwin-rebuild -- switch --flake . --impure
-sudo nix-shell -p home-manager switch --flake .#username --impure
+./rebuild system switch
+./rebuild home switch
 ```
+
+Both commands read `~/.config/config.nix`. If it is missing, `rebuild` copies
+`config.example.nix` there and exits with an error so the generated file can be
+reviewed before the first build. Direct flake commands must use `--impure`.

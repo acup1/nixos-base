@@ -35,9 +35,19 @@
     home-manager,
     ...
   } @ inputs: let
-    config = import /nix/config.nix {
-      inherit inputs;
-    };
+    configPath = let
+      configuredPath = builtins.getEnv "NIXOS_BASE_CONFIG";
+      home = builtins.getEnv "HOME";
+    in
+      if configuredPath != ""
+      then configuredPath
+      else if home != ""
+      then "${home}/.config/config.nix"
+      else throw "Cannot locate config.nix: run the build with --impure or set NIXOS_BASE_CONFIG";
+    config =
+      if builtins.pathExists configPath
+      then import (builtins.toPath configPath) {inherit inputs;}
+      else throw "Missing ${configPath}. Run ./rebuild once to generate the template; that first build will stop after creating it.";
     username = config.username;
     system = config.system;
     flakeDir = config.flakeDir;
