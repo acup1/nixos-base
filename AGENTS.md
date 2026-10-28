@@ -9,8 +9,8 @@ This repository is a Nix flake for one NixOS host and one Home Manager profile. 
 - `home.nix`: Home Manager entry point for user `acup`.
 - `home_packages/`: per-application Home Manager modules; prefer `default.nix` inside each app directory.
 - `programs/`: custom package/program definitions included by the NixOS configuration.
-- `../modules/`: component bundles alongside this repository, imported directly from the `modulesRoot` path defined inside `~/.config/nix/modules.nix`. Every component exports `nixos` and/or `home` from `default.nix`. Use `configuration/`, `packages/`, and `home_packages/` within each component, matching the host's organization; `nixos.nix` and `home.nix` import those parts. Sunshine, sunshine-frp, and Moonlight are independent components.
-- `/home/acup/flakes/modules.nix` (also linked as `~/.config/nix/modules.nix`): local bundle selection imported directly by `flake.nix`, outside the flake input graph. It receives `inputs` and returns one list for OS and Home; the local `modulesRoot` binding selects the component directory. `../modules/selection.example.nix` is the bootstrap example. Selector and component changes do not require lockfile updates. Direct local imports require `--impure`. Do not add a second `modules/` directory inside this repository.
+- `../modules/`: component bundles alongside this repository, imported directly from the `modulesRoot` path defined inside `~/.config/config.nix`. Every component exports `nixos` and/or `home` from `default.nix`. Use `configuration/`, `packages/`, and `home_packages/` within each component, matching the host's organization; `nixos.nix` and `home.nix` import those parts. Sunshine, sunshine-frp, and Moonlight are independent components.
+- `~/.config/config.nix`: machine-local settings imported directly by `flake.nix`, outside the flake input graph. It defines `username`, `system`, `flakeDir`, and the `modules` list. `config.example.nix` is the bootstrap template; `rebuild` copies it into place and stops when the configuration is missing. Configuration and component changes do not require lockfile updates. Direct local imports require `--impure`. Do not add a second `modules/` directory inside this repository.
 - `../modules/base/`: basic system packages in `packages/base.nix`; Nix, cache clients, NH, SSH, NetworkManager, locale, documentation and shell setup in `configuration/`. Keep graphical additions and optional applications out of base: the NetworkManager applet belongs to `WM-DE/common`, while `qbittorrent` and `nix-serve` are separate selectable bundles.
 - `../modules/WM-DE/`: independent `hypr`, `niri`, `drift`, and `gnome` bundles. Each imports `common` by path for shared OS/Home settings, including GDM, portals, input, graphics, sensors, audio, power and shell/theming modules. Keep compositor-specific configuration, packages and assets in its component. DriftWM and DMS upstream module imports belong to these bundles, not the root entry points.
 - `../modules/bootloader/`: GRUB/UEFI settings in `configuration/`; theme assets and packaging in `grub_themes/`. The original bootloader file also keeps the `aarch64-linux` binfmt setting.
@@ -22,8 +22,8 @@ There is no dedicated test directory. Use static inspection and syntax checks fo
 The build and flake-check commands below are for use only when explicitly requested by the user. Do not run them automatically as part of an edit, review, or PR.
 
 - `nix flake check --impure`: evaluate flake outputs and catch module or lockfile issues.
-- `nixos-rebuild build --flake .#nixos --impure`: build the system closure without switching to it.
-- `home-manager build --flake .#acup --impure`: build the Home Manager generation without activating it.
+- `./rebuild system build`: build the system closure without switching to it.
+- `./rebuild home build`: build the Home Manager generation without activating it.
 - `nix flake update`: update pinned inputs in `flake.lock`; review resulting package and module changes carefully.
 
 Run commands from the repository root. Direct imports of external local modules require `--impure`; `../modules/base/configuration/nh.nix` adds it to NixOS build/apply commands and Home Manager switch/build commands. Avoid committing the `result` symlink produced by Nix builds.
@@ -32,7 +32,7 @@ Run commands from the repository root. Direct imports of external local modules 
 
 Use idiomatic Nix with 2-space indentation for nested attribute sets and lists. Prefer small, focused modules over large mixed-purpose files. Name files by topic, for example `configuration/sshd.nix`, `packages/fonts.nix`, or `home_packages/ghostty/default.nix`.
 
-Keep host constants aligned with `flake.nix` (`username = "acup"`, `system = "x86_64-linux"`). Add packages to the most specific existing group.
+Keep host constants in `config.example.nix`; `flake.nix` reads them from `~/.config/config.nix`. Add packages to the most specific existing group.
 
 ## Testing Guidelines
 

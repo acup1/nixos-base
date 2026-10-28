@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+config_path="${NIXOS_BASE_CONFIG:-${HOME:?HOME is not set}/.config/config.nix}"
+
+if [[ ! -e "$config_path" && ! -L "$config_path" ]]; then
+  mkdir -p "$(dirname -- "$config_path")"
+  install -m 600 "$repo_dir/config.example.nix" "$config_path"
+  printf 'Created %s from the template. Review it and run the build again.\n' "$config_path" >&2
+  exit 1
+fi
+
+export NIXOS_BASE_CONFIG="$config_path"
+
+case "${1:-system}" in
+  system)
+    shift || true
+    action="${1:-switch}"
+    [[ $# -eq 0 ]] || shift
+    exec sudo --preserve-env=NIXOS_BASE_CONFIG \
+      nixos-rebuild "$action" --flake "$repo_dir#nixos" --impure "$@"
+    ;;
+  home)
+    shift || true
+    action="${1:-switch}"
+    [[ $# -eq 0 ]] || shift
+    exec home-manager "$action" --flake "$repo_dir#$(id -un)" --impure "$@"
+    ;;
+  *)
+    printf 'Usage: %s [system|home] [action] [extra arguments...]\n' "$0" >&2
+    exit 2
+    ;;
+esac

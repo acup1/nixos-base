@@ -6,7 +6,7 @@
 ## Компоненты с настройками OS и Home
 
 Модули находятся в `/home/acup/flakes/modules`, рядом с репозиторием
-`/home/acup/flakes/nixos`. Путь к ним задаётся прямо в `modules.nix`
+`/home/acup/flakes/nixos`. Путь к ним задаётся прямо в `~/.config/config.nix`
 переменной `modulesRoot`; отдельный input для модулей не нужен.
 Внутри компонентов используется та же организация, что у основной конфигурации:
 
@@ -81,50 +81,59 @@ flakes/
     └── caelestia-shell/
 ```
 
-`flake.nix` напрямую импортирует `/home/acup/flakes/modules.nix` (файл также
-доступен как `~/.config/nix/modules.nix`). Селектор находится вне графа flake
-inputs и не фиксируется в `flake.lock`; прямой импорт требует `--impure`. Один
-импорт выбирает обе части компонента. `sunshine-frp` и Moonlight подключаются
-независимо от Sunshine:
+`flake.nix` напрямую импортирует `~/.config/config.nix`. Конфигурация находится
+вне графа flake inputs и не фиксируется в `flake.lock`; прямой импорт требует
+`--impure`. Она задаёт пользователя, систему, каталог flake и единый список
+компонентов для OS и Home. `sunshine-frp` и Moonlight подключаются независимо
+от Sunshine:
 
 ```nix
 {...}: let
   modulesRoot = /home/acup/flakes/modules;
-in [
-  (import (modulesRoot + "/base"))
-  (import (modulesRoot + "/bootloader"))
-  (import (modulesRoot + "/caelestia-shell"))
-  (import (modulesRoot + "/browsers"))
-  (import (modulesRoot + "/qbittorrent"))
-  (import (modulesRoot + "/nix-serve"))
-  (import (modulesRoot + "/sunshine"))
-  (import (modulesRoot + "/sunshine-frp"))
-  (import (modulesRoot + "/moonlight"))
-  (import (modulesRoot + "/terminal"))
-  (import (modulesRoot + "/WM-DE/hypr"))
-  (import (modulesRoot + "/WM-DE/niri"))
-  (import (modulesRoot + "/WM-DE/drift"))
-  (import (modulesRoot + "/WM-DE/gnome"))
-]
+in {
+  username = "acup";
+  system = "x86_64-linux";
+  flakeDir = "/home/acup/flakes/nixos";
+  modules = [
+    (import (modulesRoot + "/base"))
+    (import (modulesRoot + "/bootloader"))
+    (import (modulesRoot + "/caelestia-shell"))
+    (import (modulesRoot + "/browsers"))
+    (import (modulesRoot + "/qbittorrent"))
+    (import (modulesRoot + "/nix-serve"))
+    (import (modulesRoot + "/sunshine"))
+    (import (modulesRoot + "/sunshine-frp"))
+    (import (modulesRoot + "/moonlight"))
+    (import (modulesRoot + "/terminal"))
+    (import (modulesRoot + "/WM-DE/hypr"))
+    (import (modulesRoot + "/WM-DE/niri"))
+    (import (modulesRoot + "/WM-DE/drift"))
+    (import (modulesRoot + "/WM-DE/gnome"))
+  ];
+}
 ```
 
-При первом развёртывании создай файл выбора из примера. Команды выполняются
-из каталога `nixos/`:
+Команды выполняются из каталога `nixos/`:
 
 ```sh
-mkdir -p ~/.config/nix
-cp ../modules/selection.example.nix ~/.config/nix/modules.nix
+./rebuild system switch
+./rebuild home switch
 ```
 
-При другом расположении модулей измени `modulesRoot` в `modules.nix`. Изменения
-селектора и файлов компонентов подхватываются при следующей оценке и не требуют
-обновления `flake.lock`.
+Если `~/.config/config.nix` отсутствует, `rebuild` копирует туда
+`config.example.nix` и завершается с ошибкой. Проверь созданный файл и повтори
+команду. При другом расположении модулей измени `modulesRoot` в конфигурации.
+Её изменения и файлы компонентов подхватываются при следующей оценке и не
+требуют обновления `flake.lock`.
 
 Для доступа к локальным модулям вне flake нужен `--impure` при сборке
-или применении NixOS и Home Manager. Например, для применения вручную:
+или применении NixOS и Home Manager. Для прямого запуска без обёртки передай
+путь через `NIXOS_BASE_CONFIG`, если команда выполняется с `sudo` и меняет
+`HOME`:
 
 ```sh
-sudo nixos-rebuild switch --flake .#nixos --impure
+export NIXOS_BASE_CONFIG="$HOME/.config/config.nix"
+sudo --preserve-env=NIXOS_BASE_CONFIG nixos-rebuild switch --flake .#nixos --impure
 home-manager switch --flake .#acup --impure
 ```
 
@@ -193,7 +202,7 @@ zsh как оболочки пользователя остаётся в осн�
 ## Оконные менеджеры и окружения рабочего стола
 
 Каждый компонент в `../modules/WM-DE/` подключается одной строкой в
-`modules.nix` и экспортирует OS и Home части. Сейчас выбраны все четыре:
+`~/.config/config.nix` и экспортирует OS и Home части. Сейчас выбраны все четыре:
 
 | Компонент | Содержимое |
 | --- | --- |
@@ -236,7 +245,7 @@ OS и Home части каждого WM импортируют соответс�
 | `qbittorrent` | Опциональный клиент загрузок |
 | `nix-serve` | Опциональный сервер собственного бинарного кэша |
 
-qBittorrent и nix-serve по-прежнему выбраны в `modules.nix`; каждый можно
+qBittorrent и nix-serve по-прежнему выбраны в `~/.config/config.nix`; каждый можно
 отключить удалением его строки. SSH и существующие правила для TCP/UDP 22
 перенесены без изменений. Сервер nix-serve сохраняет прослушивание
 `0.0.0.0:5000` и существующее открытие порта; он не входит в `base`.
