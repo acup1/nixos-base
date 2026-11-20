@@ -4,6 +4,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   inputs,
   username,
@@ -23,16 +24,22 @@ in {
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Enable CUPS to print documents.
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true;
-    openFirewall = true;
-    settings.publish = {
-      disable-publishing = lib.mkDefault false;
-      disable-user-service-publishing = lib.mkDefault false;
-      publish-addresses = lib.mkDefault true;
+  services.avahi =
+    {
+      enable = true;
+      nssmdns4 = true;
+      openFirewall = true;
+      settings.publish = {
+        disable-publishing = lib.mkDefault false;
+        disable-user-service-publishing = lib.mkDefault false;
+        publish-addresses = lib.mkDefault true;
+      };
+    }
+    # The pinned Sunshine module still sets the two deprecated aliases.
+    // lib.optionalAttrs (options.services.avahi ? publish.enable && options.services.avahi ? publish.userServices) {
+      publish.enable = lib.mkForce null;
+      publish.userServices = lib.mkForce null;
     };
-  };
   services.printing = {
     listenAddresses = ["*:631"];
     allowFrom = ["all"];
