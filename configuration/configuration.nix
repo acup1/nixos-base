@@ -27,9 +27,10 @@ in {
     enable = true;
     nssmdns4 = true;
     openFirewall = true;
-    publish = {
-      enable = true;
-      userServices = true;
+    settings.publish = {
+      disable-publishing = lib.mkDefault false;
+      disable-user-service-publishing = lib.mkDefault false;
+      publish-addresses = lib.mkDefault true;
     };
   };
   services.printing = {
