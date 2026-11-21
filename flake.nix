@@ -14,18 +14,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    hyprland = {
-      # type = "github";
-      url = "github:hyprwm/Hyprland";
-      # submodules = true;
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    driftwm.url = "github:malbiruk/driftwm";
-
-    # Keep the upstream Rust/GTK stack pinned independently.
-    waylandkb.url = "github:acup1/waylandkb";
-
     # hyprgrass = {
     #   url = "github:horriblename/hyprgrass";
     #   inputs.hyprland.follows = "hyprland";
@@ -35,15 +23,8 @@
     #   inputs.hyprland.follows = "hyprland";
     # };
 
-    iio-hyprland.url = "github:JeanSchoeller/iio-hyprland";
-
     nix-matlab = {
       url = "gitlab:doronbehar/nix-matlab";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    dms = {
-      url = "github:AvengeMedia/DankMaterialShell/stable";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -52,11 +33,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     niri.url = "github:niri-wm/niri";
-
-    nvf = {
-      url = "github:notashelf/nvf";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs = {
