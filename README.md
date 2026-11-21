@@ -12,3 +12,7 @@
 Both commands read `~/.config/config.nix`. If it is missing, `rebuild` copies
 `config.example.nix` there and exits with an error so the generated file can be
 reviewed before the first build. Direct flake commands must use `--impure`.
+
+Set a unique `hostName` in `~/.config/config.nix` on each Mac, for example
+`hostName = "macbook";`. After `./rebuild system switch`, Bonjour uses that
+name as `macbook.local`. With no `hostName` entry, macOS keeps its current name.

@@ -3,6 +3,7 @@
   privateModulesRoot = /Users/gaporoshin/flakes/private-nix-modules;
 in {
   username = "gaporoshin";
+  hostName = "macbook"; # Set a unique device name without the .local suffix.
   system = "aarch64-darwin";
   flakeDir = "/Users/gaporoshin/flakes/nixos-base";
 

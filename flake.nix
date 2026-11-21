@@ -56,7 +56,7 @@
     darwinConfigurations."${username}-OSX" = inputs.nix-darwin.lib.darwinSystem {
       inherit system;
       modules =
-        []
+        (nixpkgs.lib.optional (config ? hostName) {networking.hostName = config.hostName;})
         ++ (map (bundle: bundle.darwin or {}) moduleBundles);
       specialArgs = {
         inherit
