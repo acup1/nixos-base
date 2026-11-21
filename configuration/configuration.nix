@@ -16,7 +16,6 @@ in {
 
   # Bootloader.
   #boot.loader.systemd-boot.enable = true;
-  networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -29,17 +28,27 @@ in {
       enable = true;
       nssmdns4 = true;
       openFirewall = true;
-      settings.publish = {
-        disable-publishing = lib.mkDefault false;
-        disable-user-service-publishing = lib.mkDefault false;
-        publish-addresses = lib.mkDefault true;
-      };
     }
-    # The pinned Sunshine module still sets the two deprecated aliases.
-    // lib.optionalAttrs (options.services.avahi ? publish.enable && options.services.avahi ? publish.userServices) {
-      publish.enable = lib.mkForce null;
-      publish.userServices = lib.mkForce null;
-    };
+    // (if options.services.avahi ? settings
+      then
+        {
+          settings.publish = {
+            disable-publishing = lib.mkDefault false;
+            disable-user-service-publishing = lib.mkDefault false;
+            publish-addresses = lib.mkDefault true;
+          };
+        }
+        # Sunshine can still set the two deprecated aliases.
+        // lib.optionalAttrs (options.services.avahi ? publish.enable && options.services.avahi ? publish.userServices) {
+          publish.enable = lib.mkForce null;
+          publish.userServices = lib.mkForce null;
+        }
+      else {
+        publish = {
+          enable = lib.mkDefault true;
+          userServices = lib.mkDefault true;
+        };
+      });
   services.printing = {
     listenAddresses = ["*:631"];
     allowFrom = ["all"];

@@ -3,6 +3,7 @@
   modulesRoot = /home/acup/flakes/modules;
 in {
   username = "acup";
+  hostName = "nixos"; # Задай уникальное имя устройства без суффикса .local.
   system = "x86_64-linux";
   flakeDir = "/home/acup/flakes/nixos";
 

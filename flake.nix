@@ -87,6 +87,7 @@
       modules =
         [
           ./programs/default.nix
+          {networking.hostName = config.hostName or "nixos";}
         ]
         ++ (nixpkgs.lib.filesystem.listFilesRecursive ./configuration)
         ++ (if builtins.pathExists ./packages then (inputs.nixpkgs.lib.filesystem.listFilesRecursive ./packages) else [])
