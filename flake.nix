@@ -39,7 +39,11 @@
           ./programs/default.nix
           {networking.hostName = config.hostName or "nixos";}
         ]
-        ++ (nixpkgs.lib.filesystem.listFilesRecursive ./configuration)
+        ++ (
+          if config ? nixosHostConfiguration
+          then [config.nixosHostConfiguration]
+          else nixpkgs.lib.filesystem.listFilesRecursive ./configuration
+        )
         ++ (if builtins.pathExists ./packages then (inputs.nixpkgs.lib.filesystem.listFilesRecursive ./packages) else [])
         ++ (map (bundle: bundle.nixos or {}) moduleBundles);
       specialArgs = {

@@ -156,6 +156,11 @@ nixpkgs и Home Manager. Прикладные inputs принадлежат мо
 `(import (modulesRoot + "/math")).inputs.nix-matlab`. Для WinApps и upstream Niri
 аналогичные пути — `devops` и `WM-DE/niri`.
 
+В `config.nix` можно указать `nixosHostConfiguration = /путь/к/host.nix;`.
+Тогда базовый flake подключит этот файл как конфигурацию компьютера
+вместо файлов из `configuration/`. Список выбранных модулей задаётся
+в `modules`.
+
 Основной flake сохраняет выходы `nixosConfigurations.nixos` и
 `homeConfigurations.acup`; их применение выполняется отдельно.
 
