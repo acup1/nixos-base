@@ -150,14 +150,16 @@ home-manager switch --flake .#acup --impure
 `{ nixos = import ./nixos.nix; home = import ./home.nix; }`; ненужную часть
 можно опустить. `nixos.nix` рекурсивно импортирует файлы из `configuration/`
 и `packages/` через `lib.filesystem.listFilesRecursive`. `home.nix` автоматически
-выбирает только `default.nix` из `home_packages/`. Функция выбора также получает
-`inputs` для подключения отдельно объявленных репозиториев.
+выбирает только `default.nix` из `home_packages/`. Базовый flake закрепляет
+nixpkgs и Home Manager. Прикладные inputs принадлежат модулям.
+Если ваш `config.nix` обращался к `inputs.nix-matlab`, используйте
+`(import (modulesRoot + "/math")).inputs.nix-matlab`. Для WinApps и upstream Niri
+аналогичные пути — `devops` и `WM-DE/niri`.
 
 Основной flake сохраняет выходы `nixosConfigurations.nixos` и
 `homeConfigurations.acup`; их применение выполняется отдельно.
 
-Sunshine использует `inputs.hyprland` и `username` основной конфигурации и
-предполагает включённый Hyprland. Сохранены существующие автологин в Hyprland
+Sunshine получает `username` из основной конфигурации. Сохранены существующие автологин в Hyprland
 и открытие портов Sunshine. Отдельный компонент `sunshine-frp` содержит
 FRP-прокси, включая проброс SSH на порт 2224; его настройки перенесены без
 изменений. Токен FRP остаётся во внешнем файле `/etc/frp-sunshine.env`.
