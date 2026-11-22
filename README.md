@@ -1,5 +1,19 @@
 # nixos
  nixos flake
+## Quick start
+
+If Nix is installed, run the installer from any directory.
+
+```sh
+nix --extra-experimental-features 'nix-command flakes' run github:acup1/nixos-base/macos#nixos-installer
+```
+
+If Nix is missing, the release script installs it and starts the matching installer binary.
+
+```sh
+curl -fsSL --proto '=https' --tlsv1.2 https://github.com/acup1/nixos-installer/releases/latest/download/bootstrap.sh | sh
+```
+
 ## Preview
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/5d1e1a36-ad2b-4299-b510-32ca716e3fc7" />
 
