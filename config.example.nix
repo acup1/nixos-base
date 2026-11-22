@@ -1,6 +1,6 @@
 {...}: let
   modulesRoot = /Users/gaporoshin/flakes/nixos-modules;
-  privateModulesRoot = /Users/gaporoshin/flakes/private-nix-modules;
+  privateModulesRoot = /Users/gaporoshin/flakes/private-modules;
 in {
   username = "gaporoshin";
   hostName = "macbook"; # Set a unique device name without the .local suffix.
