@@ -16,3 +16,7 @@ reviewed before the first build. Direct flake commands must use `--impure`.
 Set a unique `hostName` in `~/.config/config.nix` on each Mac, for example
 `hostName = "macbook";`. After `./rebuild system switch`, Bonjour uses that
 name as `macbook.local`. With no `hostName` entry, macOS keeps its current name.
+
+The host pins nixpkgs, nix-darwin and Home Manager. The browsers component pins
+Zen in `browsers/inputs/flake.lock`. Host selectors that need the Zen input can
+read `(import (modulesRoot + "/browsers")).inputs.zen-browser`.
