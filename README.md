@@ -20,3 +20,10 @@ name as `macbook.local`. With no `hostName` entry, macOS keeps its current name.
 The host pins nixpkgs, nix-darwin and Home Manager. The browsers component pins
 Zen in `browsers/inputs/flake.lock`. Host selectors that need the Zen input can
 read `(import (modulesRoot + "/browsers")).inputs.zen-browser`.
+
+The system profile includes `nixos-installer` on supported Macs. The flake
+downloads the pinned GitHub release binary for the host architecture and
+verifies its SHA-256. If the selector already includes the `nixos-installer`
+component, that component controls the package.
+The standalone package is available as `nix run .#nixos-installer` and can be
+used without a host selector. The pinned nixpkgs supports Apple Silicon.

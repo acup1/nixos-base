@@ -38,36 +38,47 @@
     system = config.system;
     flakeDir = config.flakeDir;
     moduleBundles = config.modules;
+    installerRelease = nixpkgs.lib.importJSON ./nixos-installer/release.json;
+    installerSystems = builtins.filter (system: builtins.hasAttr system installerRelease.hashes) nixpkgs.lib.systems.flakeExposed;
   in {
-    darwinConfigurations."${username}-OSX" = inputs.nix-darwin.lib.darwinSystem {
-      inherit system;
-      modules =
-        (nixpkgs.lib.optional (config ? hostName) {networking.hostName = config.hostName;})
-        ++ (map (bundle: bundle.darwin or {}) moduleBundles);
-      specialArgs = {
-        inherit
-          self
-          inputs
-          system
-          username
-          flakeDir
-          ;
+    packages = nixpkgs.lib.genAttrs installerSystems (system: {
+      nixos-installer = nixpkgs.legacyPackages.${system}.callPackage ./nixos-installer/package.nix {};
+    });
+
+    darwinConfigurations = {
+      "${username}-OSX" = inputs.nix-darwin.lib.darwinSystem {
+        inherit system;
+        modules =
+          [./nixos-installer/system.nix]
+          ++ nixpkgs.lib.optional (config ? hostName) {networking.hostName = config.hostName;}
+          ++ (map (bundle: bundle.darwin or {}) moduleBundles);
+        specialArgs = {
+          inherit
+            self
+            inputs
+            system
+            username
+            flakeDir
+            ;
+        };
       };
     };
 
-    homeConfigurations.${username} = home-manager.lib.homeManagerConfiguration {
-      pkgs = import nixpkgs {system = system;};
-      modules =
-        [./home.nix]
-        ++ (map (bundle: bundle.home or {}) moduleBundles);
-      extraSpecialArgs = {
-        inherit
-          self
-          inputs
-          username
-          system
-          flakeDir
-          ;
+    homeConfigurations = {
+      ${username} = home-manager.lib.homeManagerConfiguration {
+        pkgs = import nixpkgs {system = system;};
+        modules =
+          [./home.nix]
+          ++ (map (bundle: bundle.home or {}) moduleBundles);
+        extraSpecialArgs = {
+          inherit
+            self
+            inputs
+            username
+            system
+            flakeDir
+            ;
+        };
       };
     };
   };
