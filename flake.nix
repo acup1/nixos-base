@@ -32,11 +32,18 @@
     system = config.system;
     flakeDir = config.flakeDir;
     moduleBundles = config.modules;
+    installerRelease = nixpkgs.lib.importJSON ./nixos-installer/release.json;
+    installerSystems = builtins.filter (system: builtins.hasAttr system installerRelease.hashes) nixpkgs.lib.systems.flakeExposed;
   in {
+    packages = nixpkgs.lib.genAttrs installerSystems (system: {
+      nixos-installer = nixpkgs.legacyPackages.${system}.callPackage ./nixos-installer/package.nix {};
+    });
+
     nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
       modules =
         [
           ./programs/default.nix
+          ./nixos-installer/system.nix
           {networking.hostName = config.hostName or "nixos";}
         ]
         ++ (
@@ -57,19 +64,21 @@
       };
     };
 
-    homeConfigurations.${username} = home-manager.lib.homeManagerConfiguration {
-      pkgs = import nixpkgs {inherit system;};
-      modules =
-        [./home.nix]
-        ++ (map (bundle: bundle.home or {}) moduleBundles);
-      extraSpecialArgs = {
-        inherit
-          self
-          inputs
-          username
-          system
-          flakeDir
-          ;
+    homeConfigurations = {
+      ${username} = home-manager.lib.homeManagerConfiguration {
+        pkgs = import nixpkgs {inherit system;};
+        modules =
+          [./home.nix]
+          ++ (map (bundle: bundle.home or {}) moduleBundles);
+        extraSpecialArgs = {
+          inherit
+            self
+            inputs
+            username
+            system
+            flakeDir
+            ;
+        };
       };
     };
   };
