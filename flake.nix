@@ -28,18 +28,11 @@
       if builtins.pathExists configPath
       then import (builtins.toPath configPath) {inherit inputs;}
       else throw "Missing ${configPath}. Run ./rebuild once to generate the template; that first build will stop after creating it.";
-    username = config.username;
-    system = config.system;
-    flakeDir = config.flakeDir;
-    moduleBundles = config.modules;
+    inherit (config) username system flakeDir;
     installerRelease = nixpkgs.lib.importJSON ./nixos-installer/release.json;
     installerSystems = builtins.filter (system: builtins.hasAttr system installerRelease.hashes) nixpkgs.lib.systems.flakeExposed;
-  in {
-    packages = nixpkgs.lib.genAttrs installerSystems (system: {
-      nixos-installer = nixpkgs.legacyPackages.${system}.callPackage ./nixos-installer/package.nix {};
-    });
-
-    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+    mkNixosSystem = {config, extraModules ? []}: nixpkgs.lib.nixosSystem {
+      inherit (config) system;
       modules =
         [
           ./programs/default.nix
@@ -52,24 +45,31 @@
           else nixpkgs.lib.filesystem.listFilesRecursive ./configuration
         )
         ++ (if builtins.pathExists ./packages then (inputs.nixpkgs.lib.filesystem.listFilesRecursive ./packages) else [])
-        ++ (map (bundle: bundle.nixos or {}) moduleBundles);
+        ++ (map (bundle: bundle.nixos or {}) config.modules)
+        ++ extraModules;
       specialArgs = {
+        inherit (config) system username flakeDir;
         inherit
           self
           inputs
-          system
-          username
-          flakeDir
           ;
       };
     };
+  in {
+    lib.mkNixosSystem = mkNixosSystem;
+
+    packages = nixpkgs.lib.genAttrs installerSystems (system: {
+      nixos-installer = nixpkgs.legacyPackages.${system}.callPackage ./nixos-installer/package.nix {};
+    });
+
+    nixosConfigurations.nixos = mkNixosSystem {inherit config;};
 
     homeConfigurations = {
       ${username} = home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {inherit system;};
         modules =
           [./home.nix]
-          ++ (map (bundle: bundle.home or {}) moduleBundles);
+          ++ (map (bundle: bundle.home or {}) config.modules);
         extraSpecialArgs = {
           inherit
             self
